@@ -14,8 +14,8 @@ export function MAINTABLE_NAV() {
       {screenList}
       <div
         onClick={() => dispatch({ type: 'ADD_SCREEN' })}
-        className="bi bi-plus-square text-center text-muted"
-        style={{ fontSize: '2rem' }}></div>
+        className="bi bi-plus-square text-center"
+        style={{ fontSize: '2rem', color: 'var(--bs-gray-400)' }}></div>
     </div>
   )
 }

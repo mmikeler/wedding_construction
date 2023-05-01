@@ -95,7 +95,7 @@ export function LAYER(props) {
       <div
         className={`layer ${data.type} ${isLayerActive}`}
         style={data.main_style}>
-        data.innertext
+        {data.innertext}
       </div>)
   }
 }
