@@ -1,0 +1,9 @@
+{
+  "short_name": "Wedding Construction",
+  "name": "Wedding Construction",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
