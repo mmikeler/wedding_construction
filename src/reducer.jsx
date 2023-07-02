@@ -3,6 +3,8 @@ import { createContext } from "react";
 export const AppContext = createContext(null);
 
 export const initialState = {
+  isAdmin: false,
+  userLoggedIn: window.userLoggedIn,
   maintable: {
     activeScreen: 0,
     activeLayer: 0,
@@ -24,7 +26,6 @@ export const initialState = {
 export const reducer = (state, action) => {
   const { type, pay } = { ...action }
   let s = { ...state }
-  let layer = s.maintable.screenList[s.maintable.activeScreen].layers[s.maintable.activeLayer]
   let layerMainStyle = s.maintable.screenList[s.maintable.activeScreen].layers[s.maintable.activeLayer]?.main_style
 
   let setLayerMainStyle = (newStyle) => {
@@ -80,11 +81,25 @@ export const reducer = (state, action) => {
       }
     }
 
+    if (layerType === "form") {
+      layer.fieldType = 'text'
+      layer.fieldValue = ''
+      layer.fieldName = 'Label text'
+      layer.fieldOptions = ['Option title']
+      layer.main_style = {
+        ...layer.main_style,
+        ...{
+          backgroundColor: 'transparent',
+          height: 'auto',
+          constants: ['height']
+        }
+      }
+    }
+
     return layer
   }
 
   let newScreen = () => {
-    const l = s.maintable.screenList.length
     let screen =
     {
       main_style: {
@@ -96,6 +111,10 @@ export const reducer = (state, action) => {
   }
 
   switch (type) {
+    case 'UPDATE_MAIN_STATE':
+      s[pay.key] = pay.val
+      break
+
     case 'UPDATE_LAYER_MAIN_STYLE':
       setLayerMainStyle(pay)
       break
@@ -157,5 +176,6 @@ export const reducer = (state, action) => {
     default:
       return { ...state }
   }
+  sessionStorage.setItem('_temp_site', JSON.stringify(s.maintable))
   return s
 };

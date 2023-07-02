@@ -67,14 +67,19 @@ button, input, textarea, select
 .layer
   position: absolute
   &.active
-    &::after
-      content: ''
-      position: absolute
-      top: 1px
-      left: 1px
-      width: calc(100% - 2px)
-      height: calc(100% - 2px)
-      border: 1px dashed var(--bs-danger)
+    box-shadow: 0 0 5px #e75f1e
 
 img.layer.active
   border: 1px dashed red
+
+///////////////////////////////
+.release
+  .maintable__screen
+    margin: auto
+    width: 100%
+    max-width: 460px
+    height: 100vh
+    box-shadow: none
+  .layer
+    &.active
+      box-shadow: none
