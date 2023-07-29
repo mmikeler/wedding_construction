@@ -43,7 +43,7 @@ export function COLORPICKER(props) {
   const d = useContext(LayerContext)
   const isLayerActive = state.maintable.activeScreen === d.screenID && state.maintable.activeLayer === d.layerID ? true : false
   const mainstyle = { ...state.maintable.screenList[state.maintable.activeScreen].layers[state.maintable.activeLayer].main_style }
-  const [v, setV] = useState(props.data.default)
+  const [v, setV] = useState(mainstyle[props.data.property])
 
   const onChange = (e) => {
     setV(e.target.value)
@@ -121,6 +121,7 @@ export function SELECT(props) {
 
   return (
     <select
+      value={d.layer.fieldType}
       name={d.layer.fieldName}
       className="form-control form-control-sm"
       onChange={onChange}
@@ -138,14 +139,15 @@ export function NUMBER(props) {
   const [v, setV] = useState(mainstyle[props.data.property])
 
   const onChange = (e) => {
-    setV(e.target.value)
+    setV(Number(e.target.value))
+    dispatch({
+      type: 'UPDATE_LAYER_MAIN_STYLE',
+      pay: { ...mainstyle, ...{ [props.data.property]: Number(e.target.value) } }
+    })
   }
 
   const onBlur = () => {
-    dispatch({
-      type: 'UPDATE_LAYER_MAIN_STYLE',
-      pay: { ...mainstyle, ...{ [props.data.property]: +v } }
-    })
+
   }
 
   useEffect(() => {
@@ -165,35 +167,42 @@ export function NUMBER(props) {
     />
   )
 }
-
+//============================= SIZE
 export function SIZE(props) {
   const { state, dispatch } = useContext(AppContext)
   const d = useContext(LayerContext)
-  let mainstyle = state.maintable.screenList[d.screenID].layers[d.layerID].main_style
+  let mainstyle = d.layer.main_style
   const isLayerActive = state.maintable.activeScreen === d.screenID && state.maintable.activeLayer === d.layerID ? true : false
 
   const detectUnit = mainstyle[props.data.property].toString().indexOf('px') > 0 ? 'px' : '%'
 
   const [unit, setUnit] = useState(detectUnit);
-  const [v, setV] = useState(mainstyle[props.data.property].toString().replace('px', '').replace('%', ''))
+  const [v, setV] = useState(cropNumber(mainstyle[props.data.property]))
 
   const onChange = (e) => {
     setV(e.target.value)
-  }
-
-  const onBlur = () => {
     dispatch({
       type: 'UPDATE_LAYER_MAIN_STYLE',
-      pay: { ...mainstyle, ...{ [props.data.property]: v + unit } }
+      pay: { ...mainstyle, ...{ [props.data.property]: e.target.value + unit } }
     })
   }
 
   useEffect(() => {
-    setV(mainstyle[props.data.property].toString().replace('px', '').replace('%', ''))
+
+    let temp = mainstyle[props.data.property]
+
+    if (temp === 'auto') {
+      temp = '0'
+    }
+
+    setV(cropNumber(temp))
   }, [mainstyle[props.data.property]])
 
   useEffect(() => {
-    onBlur()
+    if (isNaN(v)) return
+
+    const newV = convertTo(unit, +v, props.data.baseValue)
+    setV(newV)
   }, [unit])
 
   return (
@@ -203,7 +212,6 @@ export function SIZE(props) {
         name={d.layer.fieldName}
         disabled={!isLayerActive}
         onChange={onChange}
-        onBlur={onBlur}
         type="number"
         {...props.data.attributs}
         value={v}
@@ -239,14 +247,9 @@ export function FILE(props) {
   }
 
   const onLoad = (e) => {
-    let w = e.target.width
-    let h = e.target.height
-    let screenW = state.maintable.screenSize.width
-    let screenH = state.maintable.screenSize.height
-    let mainstyle = d.layer.main_style
     dispatch({
       type: 'UPDATE_LAYER_MAIN_STYLE',
-      pay: { ...mainstyle, ...{ height: Math.floor(h / w * screenW) } }
+      pay: { ...d.layer.main_style, ...{ height: 0 } }
     })
   }
 
@@ -262,4 +265,35 @@ export function FILE(props) {
       </div>
     </div>
   )
+}
+
+export function CHECKBOX(props) {
+
+  const id = props.options.id
+  const label = props.options.label
+  const args = props.options.args
+
+  return (
+    <div className="form-check form-check-sm form-switch">
+      <input
+        {...args}
+        className="form-check-input"
+        type="checkbox"
+        role="switch"
+        id={id} />
+      <label className="form-check-label" htmlFor={id}>{label}</label>
+    </div>
+  )
+}
+
+function convertTo(unit, value, baseValue) {
+
+  if (unit === '%')
+    return Math.floor(value / (baseValue / 100))
+  else
+    return Math.floor(baseValue / 100 * value)
+}
+
+function cropNumber(stringValue) {
+  return stringValue.toString().replace('px', '').replace('%', '')
 }

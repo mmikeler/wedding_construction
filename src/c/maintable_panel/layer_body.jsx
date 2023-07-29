@@ -1,7 +1,10 @@
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { COLORPICKER, FILE, NUMBER, SELECT, SIZE, TEXT, TEXTAREA } from "../fields"
 import { AppContext } from "../../reducer"
 import { LayerContext } from "../maintable_panel"
+import { MEDIATEKA_CALL_BTN } from "../mediateka"
+import { FONTS_SELECT_OPTIONS } from "../fontsteka"
+import { FORM_FIELDS } from "./form_fields"
 
 
 export function LAYER_BODY(props) {
@@ -10,7 +13,7 @@ export function LAYER_BODY(props) {
   const layer = state.maintable.screenList[d.screenID].layers[d.layerID]
 
   const out = () => {
-    switch (layer.type) {
+    switch (layer?.type) {
 
       case 'block':
         return <DIV_FIELDS />
@@ -29,39 +32,53 @@ export function LAYER_BODY(props) {
     }
   }
 
-  return (
-    <>
-      <DEFAULT_FIELDS layerType={layer.type} />
-      {out()}
-    </>
-  )
+  if (layer) {
+    return (
+      <>
+        <DEFAULT_FIELDS layerType={layer.type} />
+        {out()}
+      </>
+    )
+  }
+  else {
+    return null
+  }
+
 }
 
 function DEFAULT_FIELDS(props) {
-  const { dispatch } = useContext(AppContext)
+  const { state, dispatch } = useContext(AppContext)
 
   return (
     <>
       <PANEL_WIDGET title="Размер">
 
         <div className="d-flex align-items-end mt-2">
-          <label>
-            <span className="pe-1">Ширина</span>
-            <SIZE data={{
-              property: 'width',
-            }} />
-          </label>
-          <label className="ms-2">
-            <span className="pe-1">Высота</span>
-            <SIZE data={{
-              property: 'height',
-            }} />
-          </label>
-          <button
-            className="btn btn-secondary btn-sm py-0 px-1 ms-2"
-            onClick={() => dispatch({ type: 'RESET_LAYER_SIZE' })}>
-            <span className="bi bi-arrow-repeat"></span>
-          </button>
+          <div className="w-75">
+            <label className="d-flex align-items-center">
+              <span className="pe-1" style={{ width: '20px' }}>Ш</span>
+              <SIZE data={{
+                property: 'width',
+                baseValue: state.maintable.screenSize.width
+              }} />
+            </label>
+            <label className="d-flex align-items-center mt-1">
+              <span className="pe-1" style={{ width: '20px' }}>В</span>
+              <SIZE data={{
+                property: 'height',
+                baseValue: state.maintable.screenSize.height
+              }} />
+            </label>
+          </div>
+
+          <div className="px-1">
+            <button
+              className="btn btn-secondary btn-sm mx-1"
+              onClick={() => dispatch({ type: 'RESET_LAYER_SIZE' })}>
+              <span className="bi bi-arrow-repeat"></span>
+            </button>
+          </div>
+
         </div>
 
       </PANEL_WIDGET>
@@ -96,126 +113,14 @@ function DEFAULT_FIELDS(props) {
   )
 }
 
-function FORM_FIELDS() {
-  return (
-    <>
-      <PANEL_WIDGET title="Атрибуты поля">
-        <label className="mt-2 w-100">
-          <span>Имя поля</span>
-          <TEXT data={{
-            property: 'fieldName',
-            isProperty: true
-          }} />
-        </label>
-
-        <label className="mt-2 w-100">
-          <span>Тип поля</span>
-          <SELECT data={{
-            property: 'fieldType',
-            isProperty: true,
-          }}>
-            <option value="text">Текст</option>
-            <option value="number">Число</option>
-            <option value="textarea">Длинный текст</option>
-            <option value="select">Выбор из списка</option>
-            <option value="yes_no">Да/Нет</option>
-            <option value="date">Дата</option>
-          </SELECT>
-        </label>
-
-        <div>
-          <ADDITIONAL_FIELD_PROPERTIES />
-        </div>
-      </PANEL_WIDGET>
-    </>
-  )
-}
-
-function ADDITIONAL_FIELD_PROPERTIES() {
-  const { state } = useContext(AppContext)
-  const d = useContext(LayerContext)
-  const layer = state.maintable.screenList[d.screenID].layers[d.layerID]
-
-  switch (layer.fieldType) {
-    case 'select':
-      return (
-        <>
-          <hr className="mb-1 mt-3" />
-          <ADDITIONAL_SELECT />
-        </>
-      )
-
-    default:
-      return null
-  }
-}
-
-function ADDITIONAL_SELECT() {
-  const { dispatch } = useContext(AppContext)
-  const d = useContext(LayerContext)
-  const layer = { ...d.layer }
-
-  const onChange = (e, ind) => {
-    layer.fieldOptions[ind] = e.target.value
-    dispatch({
-      type: 'UPDATE_LAYER_PROPERTY',
-      pay: layer.fieldOptions
-    })
-  }
-
-  const removeOption = (ind) => {
-    layer.fieldOptions.splice(ind, 1)
-    dispatch({
-      type: 'UPDATE_LAYER_PROPERTY',
-      pay: layer.fieldOptions
-    })
-  }
-
-  const list = layer.fieldOptions.map((option, ind) => {
-    return (
-      <label className="w-100 mt-1">
-        <span>{"Вариант " + (ind + 1)}</span>
-        <div className="input-group">
-          <input
-            onChange={(e) => onChange(e, ind)}
-            className="form-control form-control-sm"
-            type="text"
-            defaultValue={option} />
-          <span onClick={() => removeOption(ind)} className="input-group-text py-0 px-2" style={{ cursor: 'pointer' }}>
-            <div className="bi bi-x"></div>
-          </span>
-        </div>
-
-      </label>
-    )
-  })
-
-  const addOption = () => {
-    layer.fieldOptions.push('Введите вариант')
-    dispatch({
-      type: 'UPDATE_LAYER_PROPERTY',
-      pay: layer.fieldOptions
-    })
-  }
-
-  return (
-    <>
-      {list}
-      <div
-        onClick={addOption}
-        className="my-2 text-center" style={{ cursor: 'pointer' }}>Добавить</div>
-    </>
-  )
-}
-
 function DIV_FIELDS() {
   const { state } = useContext(AppContext)
   const d = useContext(LayerContext)
   const layer = state.maintable.screenList[d.screenID].layers[d.layerID]
 
   return (
-    <PANEL_WIDGET title="Фон">
-      <label>
+    <PANEL_WIDGET title="Цвета">
+      <label className="mt-1">
         <span style={{ marginRight: '10px', fontSize: '0.9em' }}>Цвет фона:</span>
         <COLORPICKER data={{
           property: 'backgroundColor',
@@ -240,8 +145,18 @@ function TEXT_FIELDS() {
           }} />
         </label>
       </PANEL_WIDGET>
+
       <PANEL_WIDGET title="Шрифт">
-        <label className="mt-2 w-50 p-1">
+
+        <label className="mt-2 w-100 px-1">
+          <div>Семейство</div>
+          <SELECT data={{ property: 'fontFamily' }}>
+            <option value="">По-умолчанию</option>
+            <FONTS_SELECT_OPTIONS />
+          </SELECT>
+        </label>
+
+        <label className="mt-2 w-50 px-1">
           <span>Размер</span>
           <NUMBER data={{
             property: 'fontSize',
@@ -252,7 +167,8 @@ function TEXT_FIELDS() {
             }
           }} />
         </label>
-        <label className="mt-2 w-50 p-1">
+
+        <label className="mt-2 w-50 px-1">
           <span>Толщина</span>
           <NUMBER data={{
             property: 'fontWeight',
@@ -263,7 +179,7 @@ function TEXT_FIELDS() {
             }
           }} />
         </label>
-        <label className="mt-2 w-50 p-1">
+        <label className="mt-2 w-50 px-1">
           <span>Высота линии</span>
           <NUMBER data={{
             property: 'lineHeight',
@@ -274,7 +190,7 @@ function TEXT_FIELDS() {
             }
           }} />
         </label>
-        <label className="mt-2 w-50 p-1">
+        <label className="mt-2 w-50 px-1">
           <div>Цвет</div>
           <COLORPICKER data={{
             property: 'color',
@@ -294,17 +210,33 @@ function TEXT_FIELDS() {
 }
 
 function IMAGE_FIELDS() {
+  const layer = useContext(LayerContext)
+  const [img, setImg] = useState();
+
+  const onLoad = (e) => {
+    setImg(e.target)
+  }
 
   return (
-    <PANEL_WIDGET title="Файл">
-      <label className="mt-2">
-        <FILE data={{ property: 'filepath' }} />
-      </label>
-    </PANEL_WIDGET>
+    <>
+      <PANEL_WIDGET title="Файл">
+
+        <div className="ratio_1x1 d-flex align-items-start bg-dark mb-2">
+          <img className="m-auto" onLoad={onLoad} src={layer.layer.main_style?.src} width="100" alt="" />
+        </div>
+
+        <div className="mx-auto">
+          <MEDIATEKA_CALL_BTN text="Выбрать из Медиатеки" recall={true} />
+        </div>
+
+      </PANEL_WIDGET>
+    </>
   )
 }
 
-function PANEL_WIDGET(props) {
+
+
+export function PANEL_WIDGET(props) {
   return (
     <div className="widget p-2">
       <div className="fw-bold" style={{ borderBottom: '1px solid #ddd' }}>{props.title}</div>

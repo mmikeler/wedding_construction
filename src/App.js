@@ -24,7 +24,7 @@ function App() {
 
     fetch(window.myajax.url, {
       method: 'POST',
-      body: data
+      body: data,
     })
       .then(res => res.json())
       .then(res => {
